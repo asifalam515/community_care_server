@@ -3,18 +3,15 @@ const app = express();
 const port = process.env.PORT || 5000;
 var bodyParser = require("body-parser");
 var cors = require("cors");
+require("dotenv").config();
 // use middleware
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors());
 
-// mongodb setup
-// community_care
-// 46XdsnIElPqWaa9c
-
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const uri =
-  "mongodb+srv://community_care:46XdsnIElPqWaa9c@cluster0.6tngyrc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.6tngyrc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -27,7 +24,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     // DB and collections
     const database = client.db("communityDB");
     const users = database.collection("users");
@@ -124,9 +121,20 @@ async function run() {
 
     updateNumberField();
 
+    // // lets create the index field
+    // db.volunteerNeedsCollection.createIndex({
+    //   title: "text",
+    //   description: "text",
+    // });
+
     // implement search functionality
     app.get("/volunteer/search", async (req, res) => {
       const query = req.query.q;
+      if (!query) {
+        return res
+          .status(400)
+          .send({ message: "Query parameter 'q' is required" });
+      }
       const result = await volunteerNeedsCollection
         .find({
           $text: { $search: query },
@@ -212,11 +220,17 @@ async function run() {
       const result = await volunteerNeedsCollection.deleteOne(query);
       res.send(result);
     });
-
-    // volunteer request cancel options  :
+    // volunteer request apis
     app.get("/volunteerRequest", async (req, res) => {
-      const result = await volunteerRequestsCollection.find().toArray();
-      res.send(result);
+      const userEmail = req.query.email;
+      if (userEmail) {
+        const result = await volunteerRequestsCollection
+          .find({ volunteerEmail: userEmail })
+          .toArray();
+        res.send(result);
+      } else {
+        res.status(400).send({ message: "Email query parameter is required" });
+      }
     });
     // cancel volunteer request:
     app.delete("/volunteerRequest/:id", async (req, res) => {
