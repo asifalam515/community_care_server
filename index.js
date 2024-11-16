@@ -7,7 +7,16 @@ require("dotenv").config();
 // use middleware
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://community-care-8d432.web.app/",
+      "https://community-care-8d432.firebaseapp.com/",
+    ],
+    credentials: true,
+  })
+);
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -24,7 +33,6 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // await client.connect();
     // DB and collections
     const database = client.db("communityDB");
     const users = database.collection("users");
@@ -239,7 +247,7 @@ async function run() {
       const result = await volunteerRequestsCollection.deleteOne(query);
       res.send(result);
     });
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
