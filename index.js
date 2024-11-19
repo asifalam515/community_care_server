@@ -11,8 +11,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://community-care-8d432.web.app/",
-      "https://community-care-8d432.firebaseapp.com/",
+      "https://community-care-8d432.web.app",
+      "https://community-care-8d432.firebaseapp.com",
     ],
     credentials: true,
   })
